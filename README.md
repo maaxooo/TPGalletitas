@@ -1,92 +1,64 @@
-CREATE DATABASE paintball_experience;
-USE paintball_experience;
-
+cREATE DATABASE galletitas
+use galletitas
 CREATE TABLE Clientes (
-    id_cliente INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100),
-    email VARCHAR(100),
-    telefono VARCHAR(15)
+    dni VARCHAR(20) PRIMARY KEY,
+    nombre VARCHAR(50),
+    apellido VARCHAR(50),
+    direccion VARCHAR(100),
+    numero_telefono VARCHAR(15),
+    correo VARCHAR(50)
 );
 
-CREATE TABLE Pedidos (
-    id_pedido INT AUTO_INCREMENT PRIMARY KEY,
-    id_cliente INT,
-    fecha_pedido DATE,
-    total DECIMAL(10,2),
-    FOREIGN KEY (id_cliente) REFERENCES Clientes(id_cliente)
+CREATE TABLE Caja (
+    id INT PRIMARY KEY,
+    contenido VARCHAR(255),
+    id_lote INT,
+    dni_cliente VARCHAR(20),
+    id_pj INT,
+    FOREIGN KEY (id_lote) REFERENCES Lote(id),
+    FOREIGN KEY (dni_cliente) REFERENCES Clientes(dni)
 );
 
-CREATE TABLE Trabajadores (
-    id_trabajador INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100),
-    puesto VARCHAR(50)
+CREATE TABLE Lote (
+    id INT PRIMARY KEY,
+    pais VARCHAR(50),
+    estado VARCHAR(50)
 );
 
-CREATE TABLE Empaques (
-    id_empaque INT AUTO_INCREMENT PRIMARY KEY,
-    id_pedido INT,
-    id_trabajador INT,
-    fecha_empaque DATE,
-    FOREIGN KEY (id_pedido) REFERENCES Pedidos(id_pedido),
-    FOREIGN KEY (id_trabajador) REFERENCES Trabajadores(id_trabajador)
+CREATE TABLE Vehiculo (
+    patente VARCHAR(20) PRIMARY KEY,
+    tipo VARCHAR(50),
+    capacidad INT,
+    estado VARCHAR(50)
 );
 
--- Triggers
+CREATE TABLE Empleado (
+    dni VARCHAR(20) PRIMARY KEY,
+    nombre VARCHAR(50),
+    apellido VARCHAR(50)
+);
 
-CREATE TRIGGER actualizar_total_pedido
-AFTER INSERT ON Pedidos
-FOR EACH ROW
-BEGIN
-    UPDATE Pedidos SET total = (SELECT SUM(precio) FROM Productos WHERE id_pedido = NEW.id_pedido) WHERE id_pedido = NEW.id_pedido;
-END;
+INSERT INTO Clientes (dni, nombre, apellido, direccion, numero_telefono, correo) 
+VALUES 
+('12345678', 'Carlos', 'Pérez', 'Calle Falsa 123', '123456789', 'estoylol@gmail.com'),
+('87654321', 'Ana', 'Gómez', 'Avenida Siempre Viva 742', '987654321', 'anhre@hotmail.com');
 
-CREATE TRIGGER verificar_informacion_cliente
-BEFORE INSERT ON Clientes
-FOR EACH ROW
-BEGIN
-    IF NEW.nombre = '' THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El nombre del cliente no puede estar vacío';
-    END IF;
-END;
+INSERT INTO Lote (id, pais, estado) 
+VALUES 
+(1, 'Argentina', 'Disponible'),
+(2, 'Brasil', 'En tránsito');
 
-CREATE TRIGGER registrar_empaque
-AFTER INSERT ON Empaques
-FOR EACH ROW
-BEGIN
-    INSERT INTO LogEmpaques (id_pedido, id_trabajador, fecha_empaque) VALUES (NEW.id_pedido, NEW.id_trabajador, NEW.fecha_empaque);
-END;
+INSERT INTO Caja (id, contenido, id_lote, dni_cliente, id_pj) 
+VALUES 
+(1, 'Galletas de chocolate', 1, '12345678', 101),
+(2, 'Galletas de avena', 2, '87654321', 102);
 
-CREATE TRIGGER borrar_cliente
-BEFORE DELETE ON Clientes
-FOR EACH ROW
-BEGIN
-    DELETE FROM Pedidos WHERE id_cliente = OLD.id_cliente;
-END;
+INSERT INTO Vehiculo (patente, tipo, capacidad, estado) 
+VALUES 
+('ABC123', 'Camión', 1000, 'Disponible'),
+('XYZ789', 'Camioneta', 500, 'En reparación');
 
--- Stored Procedures
-
-CREATE PROCEDURE agregar_cliente(IN nombre_cliente VARCHAR(100), IN email_cliente VARCHAR(100), IN telefono_cliente VARCHAR(15))
-BEGIN
-    INSERT INTO Clientes (nombre, email, telefono) VALUES (nombre_cliente, email_cliente, telefono_cliente);
-END;
-
-CREATE PROCEDURE agregar_pedido(IN cliente_id INT, IN fecha DATE, IN total DECIMAL(10, 2))
-BEGIN
-    INSERT INTO Pedidos (id_cliente, fecha_pedido, total) VALUES (cliente_id, fecha, total);
-END;
-
-CREATE PROCEDURE agregar_trabajador(IN nombre_trabajador VARCHAR(100), IN puesto_trabajador VARCHAR(50))
-BEGIN
-    INSERT INTO Trabajadores (nombre, puesto) VALUES (nombre_trabajador, puesto_trabajador);
-END;
-
-CREATE PROCEDURE obtener_pedidos_por_cliente(IN cliente_id INT)
-BEGIN
-    SELECT * FROM Pedidos WHERE id_cliente = cliente_id;
-END;
-
-CREATE PROCEDURE actualizar_total(IN pedido_id INT, IN nuevo_total DECIMAL(10, 2))
-BEGIN
-    UPDATE Pedidos SET total = nuevo_total WHERE id_pedido = pedido_id;
-END;
-
+INSERT INTO Empleado (dni, nombre, apellido) 
+VALUES 
+('45678901', 'Luis', 'Martínez'),
+('65432109', 'María', 'Fernández');
